@@ -1,6 +1,7 @@
 package sudoku;
 
 import java.util.HashSet;
+import java.util.Random;
 
 public class Cell {
     private int value;
@@ -23,7 +24,7 @@ public class Cell {
     }
 
     public void removeValue(int value){
-        if(this.possibleValues.contains(value))
+        if(this.possibleValues != null && this.possibleValues.contains(value))
             this.possibleValues.remove(value);
     }
 
@@ -40,7 +41,18 @@ public class Cell {
     }
 
     public void setValue(int value){
-        this.value = value;
+        if(!this.fixed)
+            this.value = value;
+    }
+
+    public void setRandomValue(){
+        int item = new Random().nextInt(possibleValues.size());
+        int counter = 0;
+        for(int i : possibleValues){
+            if (counter == item)
+                this.value = i;
+            counter++;
+        }
     }
 
     public int getValue(){

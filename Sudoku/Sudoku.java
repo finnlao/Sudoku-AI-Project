@@ -4,8 +4,8 @@ import java.util.ArrayList;
 import sudoku.Cell;
 
 public class Sudoku {
-
     private ArrayList board;
+    
     public Sudoku(String sudokuSet){
         board = new ArrayList<Cell []>();
         for (int j = 0; j < sudokuSet.length(); j+=9){
@@ -22,7 +22,6 @@ public class Sudoku {
             board.add(cells);
         }
     }
-
 
     public ArrayList<Integer> getColumn(int index){
         ArrayList<Integer> columnValues = new ArrayList<Integer>();
@@ -58,21 +57,23 @@ public class Sudoku {
         return (Cell []) this.board.get(index);
     }
 
-    public String printBoard(){
-        String output = "";
+    public String toString(){
+        StringBuilder output = new StringBuilder();
         for(int i = 0; i < 9; i++){
             if(i % 3 == 0)
-                output += "\n";
+                output.append("\n");
+                
             ArrayList rows = this.getRows(i);
             for(int j = 0; j < rows.size(); j++){
-                if (j % 3 == 0)
-                    output += "\t";
-                output += rows.get(j);
-            }
-            output += "\n";
+                if (j % 3 == 0 && j > 1)
+                    output.append(" ");
 
-            
+                output.append(" ");
+                output.append(rows.get(j));
+                output.append(" ");
+            }
+            output.append("\n");
         }
-        return output;
+        return output.toString();
     }
 }

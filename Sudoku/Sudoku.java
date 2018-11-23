@@ -1,12 +1,17 @@
 package sudoku;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+
 import sudoku.Cell;
 
 public class Sudoku {
     private ArrayList board;
+    private int fitnessLevel;
 
     public Sudoku(String sudokuSet) {
+        this.fitnessLevel = 0;
         board = new ArrayList<Cell[]>();
         for (int j = 0; j < sudokuSet.length(); j += 9) {
             char[] sudokuSubset = sudokuSet.substring(j, j + 9).toCharArray();
@@ -124,5 +129,28 @@ public class Sudoku {
             output.append("\n");
         }
         return output.toString();
+    }
+
+    public int getFitnessLevel(){
+        return this.fitnessLevel;
+    }
+
+    public void calculateFitness(){
+        for(int i = 0; i < 9; i++){
+            ArrayList<Integer> row = this.getRow(i);
+            ArrayList<Integer> column = this.getColumn(i);
+            HashSet<Integer> rowNumbers = new HashSet<Integer>(row);
+            HashSet<Integer> columnNumbers = new HashSet<Integer>(column);
+            for(int j = 1; j <= 9; j++){
+                if(!rowNumbers.contains(j)){
+                    fitnessLevel++;
+                }
+
+                if(!columnNumbers.contains(j)){
+                    fitnessLevel++;
+                }
+            }
+
+        }
     }
 }

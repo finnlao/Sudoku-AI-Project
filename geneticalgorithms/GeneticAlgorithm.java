@@ -8,7 +8,7 @@ import java.util.ArrayList;
 public class GeneticAlgorithm {
     private Sudoku initialSudoku;
     private ArrayList<Sudoku> solutions;
-    private int population; 
+    private int population;  
     private int restartHeuristic;
 
     public GeneticAlgorithm(String sudokuSet, int initPop, int restartHeuristic){

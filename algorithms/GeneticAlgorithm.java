@@ -1,4 +1,4 @@
-package geneticalgorithm;
+package algorithms;
 
 import sudoku.Sudoku;
 import sudoku.Cell;

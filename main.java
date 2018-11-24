@@ -1,7 +1,7 @@
 
 import java.util.ArrayList;
 
-import geneticalgorithm.GeneticAlgorithm;
+import algorithms.GeneticAlgorithm;
 import sudoku.Sudoku;
 import sudoku.Cell;
 

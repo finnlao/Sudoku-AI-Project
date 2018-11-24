@@ -15,15 +15,19 @@ public class main {
         Sudoku puzzleBoard = new Sudoku(sudokuString);
         GeneticAlgorithm ga = new GeneticAlgorithm(sudokuString, 100, 1);
 
-        // for (int i = 0; i < 5; i++) {
-        System.out.println(ga.getFittestSolution().toString());
-        System.out.println(ga.getFittestSolution().getFitnessLevel());
+        // for (int i = 0; i < 100; i++) {
+        // System.out.println(ga.getSolution(i).getFitnessLevel());
         // }
+        while (ga.getSolution(0).getFitnessLevel() != 1) {
+            ga.crossOver();
+        }
 
-        // ga.crossOver();
+        System.out.println(ga.getSolution(0).getFitnessLevel());
 
-        // for(int i = 0 ; i < 5; i++){
-        // System.out.println(ga.getSolution(i).toString());
+        // System.out.println("\n POST CROSSOVER \n");
+
+        // for (int i = 0; i < ga.getSize(); i++) {
+        // System.out.println(ga.getSolution(i).getFitnessLevel());
         // }
 
         // for (int i = 0; i < 9; i++) {

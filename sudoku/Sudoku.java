@@ -16,7 +16,7 @@ public class Sudoku {
             float s1Fitness = s1.getFitnessLevel();
             float s2Fitness = s2.getFitnessLevel();
 
-            if(s1Fitness > s2Fitness)
+            if(s1Fitness < s2Fitness)
                 return 1;
             else if (s1Fitness == s2Fitness)
                 return 0;

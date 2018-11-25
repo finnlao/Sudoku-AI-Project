@@ -2,6 +2,7 @@
 import java.util.ArrayList;
 
 import algorithms.GeneticAlgorithm;
+import algorithms.ArtificialBeeColony;
 import sudoku.Sudoku;
 import sudoku.Cell;
 

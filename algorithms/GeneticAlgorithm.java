@@ -32,7 +32,7 @@ public class GeneticAlgorithm {
     }
 
     public void sort() {
-        Collections.sort(solutions, Sudoku.comparator);
+        Collections.sort(solutions);
     }
 
     public void crossOver() {

@@ -7,24 +7,9 @@ import java.util.Comparator;
 
 import sudoku.Cell;
 
-public class Sudoku {
+public class Sudoku implements Comparable<Sudoku>{
     private ArrayList board;
     private float fitnessLevel;
-
-    public static Comparator comparator = new Comparator<Sudoku>(){
-        public int compare(Sudoku s1, Sudoku s2){
-            float s1Fitness = s1.getFitnessLevel();
-            float s2Fitness = s2.getFitnessLevel();
-
-            if(s1Fitness < s2Fitness)
-                return 1;
-            else if (s1Fitness == s2Fitness)
-                return 0;
-            else
-                return -1;
-
-        }
-    };
 
     public Sudoku(String sudokuSet) {
         this.fitnessLevel = 0;
@@ -136,26 +121,6 @@ public class Sudoku {
         return (Cell[]) this.board.get(index);
     }
 
-    public String toString() {
-        StringBuilder output = new StringBuilder();
-        for (int i = 0; i < 9; i++) {
-            if (i % 3 == 0)
-                output.append("\n");
-
-            ArrayList rows = this.getRow(i);
-            for (int j = 0; j < rows.size(); j++) {
-                if (j % 3 == 0 && j > 1)
-                    output.append(" ");
-
-                output.append(" ");
-                output.append(rows.get(j));
-                output.append(" ");
-            }
-            output.append("\n");
-        }
-        return output.toString();
-    }
-
     public float getFitnessLevel(){
         return this.fitnessLevel;
     }
@@ -179,5 +144,34 @@ public class Sudoku {
 
         }
         fitnessLevel = 1 / (1 + fitnessLevel);
+    }
+
+    public int compareTo(Sudoku s){
+        if(this.fitnessLevel < s.getFitnessLevel())
+            return 1;
+        else if (this.fitnessLevel == s.getFitnessLevel())
+            return 0;
+        else
+            return -1;
+    }
+
+    public String toString() {
+        StringBuilder output = new StringBuilder();
+        for (int i = 0; i < 9; i++) {
+            if (i % 3 == 0)
+                output.append("\n");
+
+            ArrayList rows = this.getRow(i);
+            for (int j = 0; j < rows.size(); j++) {
+                if (j % 3 == 0 && j > 1)
+                    output.append(" ");
+
+                output.append(" ");
+                output.append(rows.get(j));
+                output.append(" ");
+            }
+            output.append("\n");
+        }
+        return output.toString();
     }
 }

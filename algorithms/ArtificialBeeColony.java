@@ -7,7 +7,7 @@ import java.util.Collections;
 /**
  * @author Youssef El-Hasbani
  */
-class ArtificialBeeColony{
+public class ArtificialBeeColony{
     private int eBee;
     private int oBee;
     private int sBee;
@@ -31,8 +31,11 @@ class ArtificialBeeColony{
         
         this.eBee = employedBees;
         this.oBee = onlookerBees;
-        this.sBee = (int) 0.1 * this.eBee;
+        this.sBee = (int) (0.1 * this.eBee);
 
+        System.out.println(eBee);
+        System.out.println(oBee);
+        System.out.println(sBee);
 
         foodSources = new ArrayList<Sudoku>();
 
@@ -45,7 +48,7 @@ class ArtificialBeeColony{
             totalNector += foodSource.getFitnessLevel();
         }
         
-        Collections.sort(foodSources, Sudoku.comparator);
+        Collections.sort(foodSources);
     }
 
     public static void main(String[] args) {

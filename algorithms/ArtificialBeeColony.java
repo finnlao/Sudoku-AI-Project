@@ -15,7 +15,7 @@ public class ArtificialBeeColony{
     private Sudoku initialSudoku;
     public ArrayList<Sudoku> foodSources;
 
-    public int totalNector;
+    public float totalNector;
 
     /**
      * Constructs an Instance of the ArtificialBeeColony Sudoku Solver
@@ -58,6 +58,8 @@ public class ArtificialBeeColony{
         ArtificialBeeColony abc = new ArtificialBeeColony(sudokuString, 100, 200, 100000);
 
         System.out.println(abc.foodSources.get(0).getFitnessLevel());
+        System.out.println(abc.foodSources.get(0));
 
+        System.out.println(abc.totalNector);
     }
 }

@@ -12,8 +12,8 @@ public class ArtificialBeeColony{
     private int eBee;
     private int oBee;
     private int sBee;
+    private String sudokuString;
 
-    private Sudoku initialSudoku;
     public ArrayList<Sudoku> foodSources;
 
     /**
@@ -26,7 +26,7 @@ public class ArtificialBeeColony{
      * @param maxCycles Number of cycles before stopping
      */
     public ArtificialBeeColony(String sudokuString, int employedBees, int onlookerBees, int maxCycles){
-        this.initialSudoku = new Sudoku(sudokuString);
+        this.sudokuString = sudokuString;
         
         this.eBee = employedBees;
         this.oBee = onlookerBees;
@@ -48,6 +48,10 @@ public class ArtificialBeeColony{
         Collections.sort(foodSources);
     }
 
+    public void run(){
+
+    }
+
     /**
      * Performs a Neighborhood Search on food souces
      * Number of Search Steps is dependent on the number onlooker bees
@@ -65,14 +69,14 @@ public class ArtificialBeeColony{
                 int k, jGrid, jCell;
 
                 // Pick a random food sources index
-                k = (int)(Math.random() * (foodSources.size() - 1));
+                k = random.nextInt(foodSources.size());
                 
                 // Pick a random grid in the puzzle
-                jGrid = (int)(Math.random() * (foodSources.get(i).getBoard().size() - 1));
+                jGrid = random.nextInt(foodSources.get(i).getBoard().size());
 
                 // Pick a random cell within the picked grid that isn't a fixed
                 do {
-                    jCell = (int)(Math.random() * 8);
+                    jCell = random.nextInt(9);
                 } while (foodSources.get(i).getGrid(jGrid)[jCell].isFixed());
                 
                 int Xi = foodSources.get(i).getGrid(jGrid)[jCell].getValue();
@@ -96,7 +100,6 @@ public class ArtificialBeeColony{
 
                             candidateSudoku.getGrid(jGrid)[jCell].setValue(v);
                             candidateSudoku.getGrid(jGrid)[j].setValue(Xi);
-
                             candidateSudoku.calculateFitness();
 
                             if(candidateSudoku.getFitnessLevel() > foodSources.get(i).getFitnessLevel()){
@@ -111,16 +114,30 @@ public class ArtificialBeeColony{
                     Sudoku candidateSudoku = new Sudoku(foodSources.get(i).getBoard());
 
                     candidateSudoku.getGrid(jGrid)[jCell].setValue(v);
-    
                     candidateSudoku.calculateFitness();
     
                     if(candidateSudoku.getFitnessLevel() > foodSources.get(i).getFitnessLevel()){
-                        System.out.println("HELLO");
                         foodSources.set(i, candidateSudoku);
                     }
                 }
+
+                Collections.sort(foodSources);
             }
         }
+    }
+
+    public void AbandonFoodSources(){
+        for(int i = 1; i <= eBee; i++){
+            Sudoku candidateSudoku = new Sudoku(sudokuString);
+            candidateSudoku.generateBoard();   
+            candidateSudoku.calculateFitness();
+    
+            if(candidateSudoku.getFitnessLevel() > foodSources.get(foodSources.size() - i).getFitnessLevel()){
+                foodSources.set(foodSources.size() - i, candidateSudoku);
+            }
+        }
+        
+        Collections.sort(foodSources);
     }
 
     /**
@@ -149,6 +166,10 @@ public class ArtificialBeeColony{
 
         abc.NeighborhoodSearch();
         
+        System.out.println(abc.getTotalNector());
+
+        abc.AbandonFoodSources();
+
         System.out.println(abc.getTotalNector());
     }
 }

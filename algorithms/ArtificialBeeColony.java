@@ -1,9 +1,12 @@
 package algorithms;
 
 import sudoku.Sudoku;
+import sudoku.Cell;
 import java.util.Random;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Set;
+import java.util.HashSet;
 
 /**
  * @author Youssef El-Hasbani
@@ -12,6 +15,7 @@ public class ArtificialBeeColony{
     private int eBee;
     private int oBee;
     private int sBee;
+    private int maxCycles;
     private String sudokuString;
 
     public ArrayList<Sudoku> foodSources;
@@ -31,10 +35,7 @@ public class ArtificialBeeColony{
         this.eBee = employedBees;
         this.oBee = onlookerBees;
         this.sBee = (int) (0.1 * this.eBee);
-
-        System.out.println(eBee);
-        System.out.println(oBee);
-        System.out.println(sBee);
+        this.maxCycles = maxCycles;
 
         foodSources = new ArrayList<Sudoku>();
 
@@ -49,7 +50,22 @@ public class ArtificialBeeColony{
     }
 
     public void run(){
+        for (int i = 0; i < maxCycles; i++) {
+            System.out.println("Cycle: " + i);
 
+            NeighborhoodSearch();
+            AbandonFoodSources();
+
+            System.out.println(foodSources.get(foodSources.size() - 1));
+            System.out.println("Max Fitness: " + foodSources.get(foodSources.size() - 1).getFitnessLevel());
+
+            if(foodSources.get(0).getFitnessLevel() == 1){
+                System.out.println("SOOOOOLVED!");
+            }
+        }
+        System.out.println("MAX CYCLES HIT");
+        System.out.println("Best Solution Found: " + foodSources.get(0));
+        System.out.println(foodSources.get(0).getFitnessLevel());
     }
 
     /**
@@ -61,45 +77,56 @@ public class ArtificialBeeColony{
         Random random = new Random();
         float totalNector = this.getTotalNector();
 
+        System.out.println("Total Nector: " + totalNector);
 
         for(int i = 0; i < foodSources.size(); i++){
             int searchSteps = Math.round(this.oBee * (foodSources.get(i).getFitnessLevel() / totalNector) + 1);
 
             for(int s = 0; s < searchSteps; s++){
-                int k, jGrid, jCell;
+                int j, k;
 
                 // Pick a random food sources index
-                k = random.nextInt(foodSources.size());
-                
-                // Pick a random grid in the puzzle
-                jGrid = random.nextInt(foodSources.get(i).getBoard().size());
-
-                // Pick a random cell within the picked grid that isn't a fixed
                 do {
-                    jCell = random.nextInt(9);
-                } while (foodSources.get(i).getGrid(jGrid)[jCell].isFixed());
+                    k = random.nextInt(foodSources.size());
+                } while (k == i);
                 
-                int Xi = foodSources.get(i).getGrid(jGrid)[jCell].getValue();
-                int Xk = foodSources.get(k).getGrid(jGrid)[jCell].getValue();
-                int phi = random.nextInt(3) - 1;
+                // Pick a random cell that isn't a fixed
+                do {
+                    j = random.nextInt(81);
+                } while (foodSources.get(i).getCell(j).isFixed());
+                
+                int Xi = foodSources.get(i).getCell(j).getValue();
+                int Xk = foodSources.get(k).getCell(j).getValue();
+                
+                int phi = (random.nextInt(2) == 0) ? -1 : 1;
 
-                int v = (int) Math.ceil(Xi + phi * Math.abs(Xi - Xk));
+                int v = Math.abs(Xi + phi * Math.abs(Xi - Xk));
 
-                if (v > 9){
-                    v = (v % 9) + 1;
+                if (v < 1 || v > 9){
+                    v = ((v % 9) + 1);
                 }
 
-                // If third constraint is violated do a swap
-                boolean swap = false;
-                for(int j = 0; j < 9; j++){
-                    if(j != jCell){
-                        if(foodSources.get(i).getGrid(jGrid)[j].getValue() == v){
-                            swap = true;
+                Sudoku candidateSudoku = new Sudoku(foodSources.get(i).getBoard());
 
-                            Sudoku candidateSudoku = new Sudoku(foodSources.get(i).getBoard());
+                candidateSudoku.getCell(j).setValue(v);
+                candidateSudoku.calculateFitness();
+                
+                if(checkGridConstraint(candidateSudoku)){
+                    if(candidateSudoku.getFitnessLevel() > foodSources.get(i).getFitnessLevel()){
+                        foodSources.set(i, candidateSudoku);
+                        Collections.sort(foodSources);
+                    }
+                }
+                else{
+                    for(int l = 0; l < 9; l++){
+                        int jGrid = (int) j / 9;
+                        int jCell = j % 9;
 
-                            candidateSudoku.getGrid(jGrid)[jCell].setValue(v);
-                            candidateSudoku.getGrid(jGrid)[j].setValue(Xi);
+                        if(l != jCell && foodSources.get(i).getGrid(jGrid)[l].getValue() == v){
+                            candidateSudoku = new Sudoku(foodSources.get(i).getBoard());
+
+                            candidateSudoku.getCell(j).setValue(v);
+                            candidateSudoku.getGrid(jGrid)[l].setValue(Xi);
                             candidateSudoku.calculateFitness();
 
                             if(candidateSudoku.getFitnessLevel() > foodSources.get(i).getFitnessLevel()){
@@ -109,31 +136,18 @@ public class ArtificialBeeColony{
                         }
                     }
                 }
-
-                if(!swap){
-                    Sudoku candidateSudoku = new Sudoku(foodSources.get(i).getBoard());
-
-                    candidateSudoku.getGrid(jGrid)[jCell].setValue(v);
-                    candidateSudoku.calculateFitness();
-    
-                    if(candidateSudoku.getFitnessLevel() > foodSources.get(i).getFitnessLevel()){
-                        foodSources.set(i, candidateSudoku);
-                    }
-                }
-
-                Collections.sort(foodSources);
             }
         }
     }
 
     public void AbandonFoodSources(){
-        for(int i = 1; i <= eBee; i++){
+        for(int i = 1; i <= sBee; i++){
             Sudoku candidateSudoku = new Sudoku(sudokuString);
             candidateSudoku.generateBoard();   
             candidateSudoku.calculateFitness();
     
             if(candidateSudoku.getFitnessLevel() > foodSources.get(foodSources.size() - i).getFitnessLevel()){
-                foodSources.set(foodSources.size() - i, candidateSudoku);
+                foodSources.set((foodSources.size() - i), candidateSudoku);
             }
         }
         
@@ -143,7 +157,7 @@ public class ArtificialBeeColony{
     /**
      * @return Fitness summation of all candidate solutions in population
      */
-    public float getTotalNector(){
+    private float getTotalNector(){
         float totalNector = 0;
 
         for(Sudoku s : foodSources){
@@ -153,23 +167,27 @@ public class ArtificialBeeColony{
         return totalNector;
     }
 
+    public boolean checkGridConstraint(Sudoku s){
+        Set<Integer> hashSet = new HashSet<Integer>();
+
+        for (int i = 0; i < 9; i++) {
+            for (Cell c : s.getGrid(i)) {
+                if(hashSet.contains(c.getValue())) return false;
+                hashSet.add(c.getValue());
+            }
+
+            hashSet.clear();
+        }
+
+        return true;
+    }
+
     public static void main(String[] args) {
-        String sudokuString = "060000009005040001900005003409000580008650000220480006080000925000528000540000370";
+        String sudokuString = "004300209005009001070060043006002087190007400050083000600000105003508690042910300";
         
         Sudoku puzzleBoard = new Sudoku(sudokuString);
         ArtificialBeeColony abc = new ArtificialBeeColony(sudokuString, 100, 200, 100000);
 
-        System.out.println(abc.foodSources.get(0).getFitnessLevel());
-        System.out.println(abc.foodSources.get(0));
-
-        System.out.println(abc.getTotalNector());
-
-        abc.NeighborhoodSearch();
-        
-        System.out.println(abc.getTotalNector());
-
-        abc.AbandonFoodSources();
-
-        System.out.println(abc.getTotalNector());
+        abc.run();
     }
 }

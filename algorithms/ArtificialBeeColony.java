@@ -37,35 +37,54 @@ public class ArtificialBeeColony{
         this.sBee = (int) (0.1 * this.eBee);
         this.maxCycles = maxCycles;
 
-        foodSources = new ArrayList<Sudoku>();
+        foodSources = new ArrayList<Sudoku>(); 
 
-        while(foodSources.size() != this.eBee){
-            Sudoku foodSource = new Sudoku(sudokuString);
-            foodSource.generateBoard();
-            foodSource.calculateFitness();
-            foodSources.add(foodSource);
-        }
-        
-        Collections.sort(foodSources);
+        //foodSources.subList(eBee + 1, foodSources.size()).clear();
     }
 
     public void run(){
-        for (int i = 0; i < maxCycles; i++) {
-            System.out.println("Cycle: " + i);
+         // Initialize Population
+         for (int i = 0; i < eBee; i++) {
+            Sudoku candidateSudoku = new Sudoku(sudokuString);
+            candidateSudoku.generateBoard();
+            candidateSudoku.calculateFitness();
+            foodSources.add(candidateSudoku);
+        }
+        
+        Collections.sort(foodSources);
 
-            NeighborhoodSearch();
+        for (int j = 0; j < maxCycles; j++) {
+            System.out.println("Cycle: " + j);
+
+            // Employee Bee Neighborhood Search
+            for (int k = 0; k < eBee; k++) {
+                NeighborhoodSearch(k);
+            }
+
+            float totalNectar = getTotalNectar();
+
+            for(int m = 0; m < eBee; m++){
+                int allocatedOnlookers = Math.round(this.oBee * (foodSources.get(m).getFitnessLevel() / totalNectar));
+
+                for (int n = 0; n < allocatedOnlookers; n++) {
+                    NeighborhoodSearch(m);
+                }
+            }
+
             AbandonFoodSources();
 
-            System.out.println(foodSources.get(foodSources.size() - 1));
-            System.out.println("Max Fitness: " + foodSources.get(foodSources.size() - 1).getFitnessLevel());
+            System.out.println(foodSources.get(0));
+            System.out.println("Max Fitness: " + foodSources.get(0).getFitnessLevel());
 
             if(foodSources.get(0).getFitnessLevel() == 1){
-                System.out.println("SOOOOOLVED!");
+                break;
             }
         }
-        System.out.println("MAX CYCLES HIT");
         System.out.println("Best Solution Found: " + foodSources.get(0));
         System.out.println(foodSources.get(0).getFitnessLevel());
+        System.out.println();
+
+        foodSources.clear();
     }
 
     /**
@@ -73,121 +92,120 @@ public class ArtificialBeeColony{
      * Number of Search Steps is dependent on the number onlooker bees
      * Food sources with higher nectar are allocated more bees
      */
-    public void NeighborhoodSearch(){
+    public void NeighborhoodSearch(int index){
         Random random = new Random();
-        float totalNector = this.getTotalNector();
+        Sudoku foodSource = foodSources.get(index);
 
-        System.out.println("Total Nector: " + totalNector);
+        int j, k;
 
-        for(int i = 0; i < foodSources.size(); i++){
-            int searchSteps = Math.round(this.oBee * (foodSources.get(i).getFitnessLevel() / totalNector) + 1);
-
-            for(int s = 0; s < searchSteps; s++){
-                int j, k;
-
-                // Pick a random food sources index
-                do {
-                    k = random.nextInt(foodSources.size());
-                } while (k == i);
+        // Pick a random food sources index    
+        k = random.nextInt(foodSources.size());
                 
-                // Pick a random cell that isn't a fixed
-                do {
-                    j = random.nextInt(81);
-                } while (foodSources.get(i).getCell(j).isFixed());
+        // Pick a random cell that isn't a fixed
+        do {
+            j = random.nextInt(81);
+        } while (foodSource.getCell(j).isFixed());
                 
-                int Xi = foodSources.get(i).getCell(j).getValue();
-                int Xk = foodSources.get(k).getCell(j).getValue();
-                
-                int phi = (random.nextInt(2) == 0) ? -1 : 1;
+        int Xi = foodSource.getCell(j).getValue();
+        int Xk = foodSources.get(k).getCell(j).getValue();
+        
+        float phi = random.nextFloat() * (random.nextInt(3) - 1);
 
-                int v = Math.abs(Xi + phi * Math.abs(Xi - Xk));
+        int v = Math.round(Xi + phi * Math.abs(Xi - Xk));
 
-                if (v < 1 || v > 9){
-                    v = ((v % 9) + 1);
-                }
+        if (v > 9){
+            v = ((v % 9) + 1);
+        }
 
-                Sudoku candidateSudoku = new Sudoku(foodSources.get(i).getBoard());
+        Sudoku candidateSudoku = new Sudoku(foodSource.getBoard());
 
-                candidateSudoku.getCell(j).setValue(v);
-                candidateSudoku.calculateFitness();
-                
-                if(checkGridConstraint(candidateSudoku)){
-                    if(candidateSudoku.getFitnessLevel() > foodSources.get(i).getFitnessLevel()){
-                        foodSources.set(i, candidateSudoku);
+        candidateSudoku.getCell(j).setValue(v);
+        candidateSudoku.calculateFitness();
+        
+        int gridIndex = (int) j / 9;
+
+        if(checkGridConstraint(candidateSudoku, gridIndex)){
+            if(candidateSudoku.getFitnessLevel() > foodSource.getFitnessLevel()){
+                foodSources.set(index, candidateSudoku);
+                Collections.sort(foodSources);
+            }
+        }
+        else{
+            for(int l = 0; l < 9; l++){
+                int cellValue = foodSource.getGrid(gridIndex)[l].getValue();
+
+                if(l != (j % 9) && cellValue == v){
+                    candidateSudoku = new Sudoku(foodSource.getBoard());
+                        
+                    candidateSudoku.getCell(j).setValue(v);
+                    candidateSudoku.getGrid(gridIndex)[l].setValue(Xi);
+                    candidateSudoku.calculateFitness();
+
+                    if(candidateSudoku.getFitnessLevel() > foodSource.getFitnessLevel()){
+                        foodSources.set(index, candidateSudoku);
                         Collections.sort(foodSources);
+                        break;
                     }
-                }
-                else{
-                    for(int l = 0; l < 9; l++){
-                        int jGrid = (int) j / 9;
-                        int jCell = j % 9;
+                    else{
+                        candidateSudoku = new Sudoku(foodSource.getBoard());
+                        candidateSudoku.setGrid((j % 9), foodSources.get(k).getGrid((j % 9)));
+                        candidateSudoku.calculateFitness();
 
-                        if(l != jCell && foodSources.get(i).getGrid(jGrid)[l].getValue() == v){
-                            candidateSudoku = new Sudoku(foodSources.get(i).getBoard());
-
-                            candidateSudoku.getCell(j).setValue(v);
-                            candidateSudoku.getGrid(jGrid)[l].setValue(Xi);
-                            candidateSudoku.calculateFitness();
-
-                            if(candidateSudoku.getFitnessLevel() > foodSources.get(i).getFitnessLevel()){
-                                foodSources.set(i, candidateSudoku);
-                                break;
-                            }
+                        if(candidateSudoku.getFitnessLevel() > foodSource.getFitnessLevel()){
+                            foodSources.set(index, candidateSudoku);
+                            Collections.sort(foodSources);
+                            break;
                         }
                     }
                 }
             }
         }
     }
-
+    
     public void AbandonFoodSources(){
         for(int i = 1; i <= sBee; i++){
-            Sudoku candidateSudoku = new Sudoku(sudokuString);
-            candidateSudoku.generateBoard();   
-            candidateSudoku.calculateFitness();
-    
-            if(candidateSudoku.getFitnessLevel() > foodSources.get(foodSources.size() - i).getFitnessLevel()){
-                foodSources.set((foodSources.size() - i), candidateSudoku);
-            }
+                Sudoku candidateSudoku = new Sudoku(sudokuString);
+                candidateSudoku.generateBoard();   
+                candidateSudoku.calculateFitness();
+                
+                if(candidateSudoku.getFitnessLevel() > foodSources.get(foodSources.size() - i).getFitnessLevel()){
+                    foodSources.set((foodSources.size() - i), candidateSudoku);
+                    Collections.sort(foodSources);
+                }
         }
-        
-        Collections.sort(foodSources);
     }
 
     /**
      * @return Fitness summation of all candidate solutions in population
      */
-    private float getTotalNector(){
-        float totalNector = 0;
+    private float getTotalNectar(){
+        float totalNectar = 0;
 
         for(Sudoku s : foodSources){
-            totalNector += s.getFitnessLevel();
+            totalNectar += s.getFitnessLevel();
         }
 
-        return totalNector;
+        return totalNectar;
     }
 
-    public boolean checkGridConstraint(Sudoku s){
+    public boolean checkGridConstraint(Sudoku s, int gridIndex){
         Set<Integer> hashSet = new HashSet<Integer>();
 
-        for (int i = 0; i < 9; i++) {
-            for (Cell c : s.getGrid(i)) {
-                if(hashSet.contains(c.getValue())) return false;
-                hashSet.add(c.getValue());
-            }
-
-            hashSet.clear();
+        for (Cell c : s.getGrid(gridIndex)) {
+            if(hashSet.contains(c.getValue())) return false;
+            hashSet.add(c.getValue());
         }
 
         return true;
     }
 
     public static void main(String[] args) {
-        String sudokuString = "004300209005009001070060043006002087190007400050083000600000105003508690042910300";
+        // 020567900103008600690004270005100000080506090000002700041800059009700804006549010
+        // AI Escargot 100030009007020600090008500005010600300080004900002000300041007000000000010007300
+        String sudokuString = "020567900103008600690004270005100000080506090000002700041800059009700804006549010";
         
-        Sudoku puzzleBoard = new Sudoku(sudokuString);
         ArtificialBeeColony abc = new ArtificialBeeColony(sudokuString, 100, 200, 100000);
-
+        
         abc.run();
     }
 }

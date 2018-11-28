@@ -1,6 +1,7 @@
 package sudoku;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Comparator;
@@ -8,7 +9,7 @@ import java.util.Comparator;
 import sudoku.Cell;
 
 public class Sudoku implements Comparable<Sudoku>{
-    private ArrayList board;
+    private ArrayList<Cell[]> board;
     private float fitnessLevel;
 
     public Sudoku(String sudokuSet) {
@@ -38,7 +39,18 @@ public class Sudoku implements Comparable<Sudoku>{
     }
 
     public Sudoku(ArrayList<Cell[]> board) {
-        this.board = board;
+        this.board = new ArrayList<Cell[]>();
+
+        for(Cell[] grid : board){
+            Cell[] newGrid = new Cell[grid.length];
+
+            for (int i = 0; i < grid.length; i++) {
+                newGrid[i] = new Cell(grid[i]);
+            }
+
+            this.board.add(newGrid);
+        }
+        
         this.calculateFitness();
     }
 
@@ -109,16 +121,23 @@ public class Sudoku implements Comparable<Sudoku>{
         this.board.set(index, cells);
     }
 
-    public ArrayList getBoard() {
+    public ArrayList<Cell[]> getBoard() {
         return this.board;
     }
 
-    public void setBoard(ArrayList<Integer> board){
+    public void setBoard(ArrayList<Cell[]> board){
         this.board = board;
     }
 
     public Cell[] getGrid(int index) {
         return (Cell[]) this.board.get(index);
+    }
+
+    public Cell getCell(int index){
+        int gridIndex = (int) index / 9;
+        int cellIndex = index % 9;
+
+        return this.board.get(gridIndex)[cellIndex];
     }
 
     public float getFitnessLevel(){

@@ -13,7 +13,7 @@ public class Cell {
     public Cell(){
         this.value = 0;
         this.fixed = false;
-        this.possibleValues = new HashSet<>();
+        this.possibleValues = new HashSet<Integer>();
 
         for(int i = 1; i < 10; i++){
             this.possibleValues.add(i);
@@ -23,13 +23,14 @@ public class Cell {
     public Cell(int value){
         this.value = value;
         this.fixed = true;
-        this.possibleValues = new HashSet<>();
+        this.possibleValues = new HashSet<Integer>();
     }
 
     public Cell(Cell c){
         this.value = c.getValue();
         this.fixed = c.isFixed();
-
+        this.possibleValues = new HashSet<Integer>();
+        
         Iterator<Integer> it = c.getPossibleValues().iterator();
         while(it.hasNext()){
             this.possibleValues.add(it.next().intValue());

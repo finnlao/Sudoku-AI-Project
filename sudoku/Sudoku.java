@@ -52,6 +52,7 @@ public class Sudoku implements Comparable<Sudoku>{
         }
         
         this.calculateFitness();
+
     }
 
     public void generateBoard() {
@@ -162,7 +163,7 @@ public class Sudoku implements Comparable<Sudoku>{
             }
 
         }
-        fitnessLevel = 1 / (1 + fitnessLevel);
+       fitnessLevel = 1 / (1 + fitnessLevel);
     }
 
     public int compareTo(Sudoku s){

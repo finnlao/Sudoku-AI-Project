@@ -29,11 +29,12 @@ public class Cell {
     public Cell(Cell c){
         this.value = c.getValue();
         this.fixed = c.isFixed();
-        this.possibleValues = new HashSet<Integer>();
         
-        Iterator<Integer> it = c.getPossibleValues().iterator();
-        while(it.hasNext()){
-            this.possibleValues.add(it.next().intValue());
+        if(c.getPossibleValues() != null){
+            Iterator<Integer> it = c.getPossibleValues().iterator();
+            while(it.hasNext()){
+                this.possibleValues.add(it.next().intValue());
+            }
         }
     }
 

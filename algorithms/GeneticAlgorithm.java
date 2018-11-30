@@ -12,17 +12,18 @@ import java.util.TreeSet;
 public class GeneticAlgorithm {
     private String initialSudokuString;
     private ArrayList<Sudoku> solutions;
-    private int restartHeuristic, population, selectedNoOfParents, maxGeneration;
-    private float mutationRate, selectionRate;
+    private Sudoku bestSolution = null;
+    private int population, selectedNoOfParents, maxGeneration;
+    private float crossoverRate, mutationRate, selectionRate;
     private final Random rand = new Random();
 
-    public GeneticAlgorithm(String sudokuString, int initPop, int restartHeuristic, float mutationRate, float selectionRate, int maxGeneration) {
+    public GeneticAlgorithm(String sudokuString, int initPop, float crossoverRate, float mutationRate, float selectionRate, int maxGeneration) {
         this.initialSudokuString = sudokuString;
         this.solutions = new ArrayList<Sudoku>();
         this.population = initPop;
-        this.restartHeuristic = restartHeuristic;
         this.mutationRate = mutationRate;
         this.selectionRate = selectionRate;
+        this.crossoverRate = crossoverRate;
         this.maxGeneration = maxGeneration;
         this.selectedNoOfParents = (int)(population * selectionRate);
 
@@ -30,9 +31,10 @@ public class GeneticAlgorithm {
             Sudoku solution = new Sudoku(sudokuString);
             solution.generateBoard();
             solution.calculateFitness();
+            if(bestSolution == null || bestSolution.getFitnessLevel() < solution.getFitnessLevel())
+                bestSolution = solution;
             this.solutions.add(solution);
         }
-        this.sort();
     }
 
     public void sort() {
@@ -69,6 +71,12 @@ public class GeneticAlgorithm {
                 tournamentBracket[i] = solutions.get(index);
             } 
             Arrays.sort(tournamentBracket);
+            if(bestSolution.getFitnessLevel() < tournamentBracket[0].getFitnessLevel())
+                bestSolution = tournamentBracket[0];
+
+            if(bestSolution.getFitnessLevel() < tournamentBracket[1].getFitnessLevel())
+                bestSolution = tournamentBracket[1];
+
             selection.add(tournamentBracket[0]);
             selection.add(tournamentBracket[1]);
         }  
@@ -83,39 +91,40 @@ public class GeneticAlgorithm {
         ArrayList<Sudoku> parents = select();
         solutions.clear();
         while (remainingPopulation != population){
-            int index1 = rand.nextInt(selectedNoOfParents);
-            int index2 = rand.nextInt(selectedNoOfParents);
-            while(index1 == index2){
-                index2 = rand.nextInt(selectedNoOfParents);
-            }
-
-            Sudoku parent1 = parents.get(index1);
-            Sudoku parent2 = parents.get(index2);
-
-            ArrayList offspringBoard1 = new ArrayList<Cell[]>();
-            ArrayList offspringBoard2 = new ArrayList<Cell[]>();
-
-            int crossoverPoint = rand.nextInt(9-1) + 1;
-            for (int j = 0; j < 9; j++) {
-                if (j >= crossoverPoint) {
-                    offspringBoard1.add(parent2.getGrid(j));
-                    offspringBoard2.add(parent1.getGrid(j));
-                } else {
-                    offspringBoard1.add(parent1.getGrid(j));
-                    offspringBoard2.add(parent2.getGrid(j));
+            if(rand.nextFloat() <= crossoverRate){
+                int index1 = rand.nextInt(selectedNoOfParents);
+                int index2 = rand.nextInt(selectedNoOfParents);
+                while(index1 == index2){
+                    index2 = rand.nextInt(selectedNoOfParents);
                 }
+
+                Sudoku parent1 = parents.get(index1);
+                Sudoku parent2 = parents.get(index2);
+
+                ArrayList offspringBoard1 = new ArrayList<Cell[]>();
+                ArrayList offspringBoard2 = new ArrayList<Cell[]>();
+
+                int crossoverPoint = rand.nextInt(9-1) + 1;
+                for (int j = 0; j < 9; j++) {
+                    if (j >= crossoverPoint) {
+                        offspringBoard1.add(parent2.getGrid(j));
+                        offspringBoard2.add(parent1.getGrid(j));
+                    } else {
+                        offspringBoard1.add(parent1.getGrid(j));
+                        offspringBoard2.add(parent2.getGrid(j));
+                    }
+                }
+
+                Sudoku offspring1 = new Sudoku(offspringBoard1);
+                Sudoku offspring2 = new Sudoku(offspringBoard2);
+
+                mutation(offspring1);
+                mutation(offspring2);
+
+                remainingPopulation++;
             }
-
-            Sudoku offspring1 = new Sudoku(offspringBoard1);
-            Sudoku offspring2 = new Sudoku(offspringBoard2);
-
-            mutation(offspring1);
-            mutation(offspring2);
-
-            remainingPopulation++;
         }
         solutions.addAll(parents);
-        sort();
     }
 
     public void mutation(Sudoku offspring){
@@ -142,6 +151,8 @@ public class GeneticAlgorithm {
             solution.setGrid(subGridIndex, cells);
             solution.calculateFitness();
         } 
+        if(bestSolution.getFitnessLevel() < solution.getFitnessLevel())
+            bestSolution = solution;
         solutions.add(solution);
     }
 
@@ -175,22 +186,10 @@ public class GeneticAlgorithm {
             float currentBest = solutions.get(0).getFitnessLevel();
             crossOver();
             System.out.println("Generation "+ (generationCount + 1));
-            System.out.println("Fittest solution: "+solutions.get(0).getFitnessLevel());
-            System.out.println("Worst solution: "+solutions.get(population-1).getFitnessLevel());
-            System.out.println("Board: \n"+solutions.get(0).toString());
-
-            // if(fittestSolution == currentBest){
-            //     sameFitnessCounter++;
-            // } else {
-            //     sameFitnessCounter = 0;
-            // }
-            // fittestSolution = currentBest;
-            // if(sameFitnessCounter >= restartHeuristic){
-            //     restart();
-            //     sameFitnessCounter = 0;
-            // }
+            System.out.println("Fittest solution: "+bestSolution.getFitnessLevel());
+            System.out.println("Board: \n"+bestSolution.toString());
             generationCount++;
-        } while (solutions.get(0).getFitnessLevel() != 1 && generationCount < maxGeneration);
+        } while (bestSolution.getFitnessLevel() != 1 && generationCount < maxGeneration);
     }
 
 
@@ -202,7 +201,7 @@ public class GeneticAlgorithm {
         // String sudokuString =
         // "000000000000000000000000000000000000000000000000000000000000000000000000000000000";
         Sudoku puzzleBoard = new Sudoku(sudokuString);
-        GeneticAlgorithm ga = new GeneticAlgorithm(sudokuString, 100000, 50, 0.01f, 0.5f, 10000);
+        GeneticAlgorithm ga = new GeneticAlgorithm(sudokuString, 100000, 0.78f, 0.01f, 0.5f, 10000);
         ga.run();
 
     }

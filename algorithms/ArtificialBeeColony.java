@@ -38,13 +38,11 @@ public class ArtificialBeeColony{
         this.maxCycles = maxCycles;
 
         foodSources = new ArrayList<Sudoku>(); 
-
-        //foodSources.subList(eBee + 1, foodSources.size()).clear();
     }
 
     public void run(){
          // Initialize Population
-         for (int i = 0; i < eBee; i++) {
+        for (int i = 0; i < (eBee * eBee); i++) {
             Sudoku candidateSudoku = new Sudoku(sudokuString);
             candidateSudoku.generateBoard();
             candidateSudoku.calculateFitness();
@@ -52,6 +50,7 @@ public class ArtificialBeeColony{
         }
         
         Collections.sort(foodSources);
+        foodSources.subList(eBee + 1, foodSources.size()).clear();
 
         for (int j = 0; j < maxCycles; j++) {
             System.out.println("Cycle: " + j);
